@@ -46,3 +46,6 @@ tornado==6.4.1
 tzdata==2024.1
 vine==5.1.0
 wcwidth==0.2.13
+Flask==2.2.2
+gunicorn==20.1.0
+aiohttp==3.8.2
