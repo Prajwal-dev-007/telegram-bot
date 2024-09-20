@@ -67,7 +67,7 @@ from datetime import datetime
 import asyncio
 
 # Your bot token and channel ID
-TOKEN = 'YOUR_BOT_TOKEN'
+TOKEN = '7619941228:AAGHpKq2OaqzDy_fjRkCkhfC6m1e9xt5ffQ'
 CHANNEL_ID = '@datamazesolutions'
 
 # Initialize bot
