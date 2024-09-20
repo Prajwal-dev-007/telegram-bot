@@ -4,7 +4,7 @@ name: Schedule Telegram Bot
 on:
   schedule:
     - cron: '0 8 * * *'  # Runs at 8 AM and 5 PM UTC
-    - cron: '12 24 * * *'
+    - cron: '18 00 * * *'
 
 jobs:
   send_feed:
