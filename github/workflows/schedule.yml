@@ -2,7 +2,7 @@ name: Schedule Telegram Bot
 
 on:
   schedule:
-    - cron: '0 8,17 * * *'  # Runs at 8 AM and 5 PM UTC
+    - cron: '0 8,23 * * *'  # Runs at 8 AM and 5 PM UTC
 
 jobs:
   send_feed:
@@ -10,4 +10,5 @@ jobs:
     steps:
       - name: Trigger Netlify function
         run: |
-          curl -X POST https://your-site-name.netlify.app/.netlify/functions/telegramBot
+          curl -X POST https://main--lighthearted-travesseiro-de5c56.netlify.app//.netlify/functions/telegramBot
+
