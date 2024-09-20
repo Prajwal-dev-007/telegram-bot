@@ -10,7 +10,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "feedparser": "^2.2.10",
     "node-telegram-bot-api": "^0.66.0"
   }
 }
- 
