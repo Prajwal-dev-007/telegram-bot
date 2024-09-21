@@ -13,4 +13,4 @@ jobs:
     steps:
       - name: Trigger Netlify function
         run: |
-          curl https://lighthearted-travesseiro-de5c56.netlify.app/.netlify/functions/telegramBot
+          curl -X POST https://lighthearted-travesseiro-de5c56.netlify.app/.netlify/functions/telegramBot
