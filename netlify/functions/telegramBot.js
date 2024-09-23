@@ -88,6 +88,16 @@ bot.onText(/\/addrss/, (msg) => {
     bot.sendMessage(chatId, 'Please send me the RSS feed URL you want to add.');
 });
 
+
+// this is for logging
+bot.onText(/\/addrss/, (msg) => {
+    const chatId = msg.chat.id;
+    console.log(`Received /addrss command from ${chatId}`); // Log the chat ID
+
+    awaitingRssUrl[chatId] = true;
+    bot.sendMessage(chatId, 'Please send me the RSS feed URL you want to add.');
+});
+
 // Listen for messages to get the RSS link
 bot.on('message', (msg) => {
     const chatId = msg.chat.id;
