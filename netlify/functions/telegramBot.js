@@ -159,8 +159,8 @@ const FeedParser = require('feedparser');
 const axios = require('axios');
 const fs = require('fs');
 
-const TOKEN = process.env.TOKEN;
-const CHANNEL_ID = process.env.CHANNEL_ID;
+const TOKEN = '7619941228:AAGHpKq2OaqzDy_fjRkCkhfC6m1e9xt5ffQ';
+const CHANNEL_ID = '@datamazesolutions';
 const bot = new TelegramBot(TOKEN, { polling: true });
 
 const RSS_FILE_PATH = './/netlify/functions/rss_urls.json';
