@@ -1,4 +1,4 @@
-"""
+
 import os
 import json
 import feedparser
@@ -33,7 +33,7 @@ def handler(event, context):
         'body': json.dumps('Messages sent successfully!')
     }
 print("script executed")
-"""
+
 """""
 import os
 import json
@@ -110,6 +110,7 @@ if __name__ == '__main__':
 
 
 """""
+"""""
 import os
 import json
 import feedparser
@@ -139,7 +140,7 @@ def save_rss_urls(urls: list):
 rss_urls = load_rss_urls()
 
 def validate_rss_link(rss_link: str) -> bool:
-    """Validate if the provided link is a valid RSS feed."""
+    """"Validate if the provided link is a valid RSS feed.""""
     try:
         response = requests.get(rss_link)
         return response.status_code == 200
@@ -147,7 +148,7 @@ def validate_rss_link(rss_link: str) -> bool:
         return False
 
 async def addrss(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Command to add an RSS link."""
+    """"Command to add an RSS link.""""
     if context.args:
         rss_link = context.args[0]
         if validate_rss_link(rss_link):
@@ -160,7 +161,7 @@ async def addrss(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         await update.message.reply_text("Please provide a valid RSS link after the command.")
 
 async def send_feeds():
-    """Send messages for the existing RSS feeds."""
+   """"Send messages for the existing RSS feeds.""""
     bot = Bot(token=TOKEN)
 
     for rss_url in rss_urls:
@@ -171,7 +172,7 @@ async def send_feeds():
                 await bot.send_message(chat_id=CHANNEL_ID, text=message)
 
 async def main():
-    """Start the bot."""
+    """"Start the bot.""""
     app = ApplicationBuilder().token(TOKEN).build()
 
     # Command to add RSS
@@ -187,3 +188,4 @@ if __name__ == '__main__':
     import asyncio
     print("Bot is starting...")
     asyncio.run(main())
+"""""

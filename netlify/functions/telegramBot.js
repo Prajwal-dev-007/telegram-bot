@@ -1,10 +1,10 @@
-/*
+
 const TelegramBot = require('node-telegram-bot-api'); // Changed to use default export
 const FeedParser = require('feedparser'); // Correctly import FeedParser
 const axios = require('axios');
 
-const TOKEN = process.env.TOKEN; // Ensure TOKEN is set in your environment
-const CHANNEL_ID = process.env.CHANNEL_ID; // Ensure CHANNEL_ID is set in your environment
+const TOKEN = process.env.TOKEN; 
+const CHANNEL_ID = process.env.CHANNEL_ID; 
 const bot = new TelegramBot(TOKEN, { polling: true }); // Enable polling if necessary
 
 exports.handler = async (event, context) => {
@@ -57,7 +57,8 @@ exports.handler = async (event, context) => {
     };
 };
 
-*/
+
+/*
 const TelegramBot = require('node-telegram-bot-api'); 
 const FeedParser = require('feedparser'); 
 const axios = require('axios');
@@ -120,3 +121,4 @@ exports.handler = async (event, context) => {
         body: JSON.stringify({ message: 'Feeds sent successfully!' }),
     };
 };
+*/
