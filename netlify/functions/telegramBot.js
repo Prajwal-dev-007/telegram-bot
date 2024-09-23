@@ -163,7 +163,7 @@ const TOKEN = process.env.TOKEN;
 const CHANNEL_ID = process.env.CHANNEL_ID;
 const bot = new TelegramBot(TOKEN, { polling: true });
 
-const RSS_FILE_PATH = './rss_urls.json';
+const RSS_FILE_PATH = './/netlify/functions/rss_urls.json';
 
 // Load RSS URLs from the JSON file
 function loadRssUrls() {
