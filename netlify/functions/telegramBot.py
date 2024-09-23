@@ -120,7 +120,7 @@ import nest_asyncio
 
 TOKEN = '7619941228:AAGHpKq2OaqzDy_fjRkCkhfC6m1e9xt5ffQ' # Replace with your actual bot token
 CHANNEL_ID = '@datamazesolutions' # Replace with your actual channel ID
-RSS_FILE_PATH = './netlify/functions/rss_urls.json'  # File to store the RSS URLs
+RSS_FILE_PATH = './rss_urls.json'  # File to store the RSS URLs
 
 # Load RSS URLs from the JSON file
 def load_rss_urls() -> list:
