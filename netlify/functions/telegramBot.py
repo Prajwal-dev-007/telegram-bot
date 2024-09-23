@@ -177,7 +177,7 @@ async def main():
     # Command to add RSS
     app.add_handler(CommandHandler('addrss', addrss))
 
-    #await send_feeds()
+    await send_feeds()
 
     # Start the bot
     await app.run_polling()

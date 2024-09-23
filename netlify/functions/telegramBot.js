@@ -232,4 +232,4 @@ async function sendRssFeeds() {
 }
 
 // Call this function periodically or trigger it from another event
-//sendRssFeeds();
+sendRssFeeds();
