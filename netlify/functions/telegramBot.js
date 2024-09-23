@@ -161,7 +161,9 @@ const fs = require('fs');
 
 const TOKEN = '7619941228:AAGHpKq2OaqzDy_fjRkCkhfC6m1e9xt5ffQ';
 const CHANNEL_ID = '@datamazesolutions';
-const bot = new TelegramBot(TOKEN, { polling: true });
+//const bot = new TelegramBot(TOKEN, { polling: true });
+const bot = new TelegramBot(TOKEN);
+
 
 const RSS_FILE_PATH = './rss_urls.json';
 
