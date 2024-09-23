@@ -194,35 +194,48 @@ let rssUrls = loadRssUrls();
 // Function to send RSS entries to the channel
 async function sendRssFeeds() {
     for (const rssUrl of rssUrls) {
+        console.log(`Fetching RSS feed from: ${rssUrl}`);
         try {
             const response = await axios.get(rssUrl, { responseType: 'stream' });
             const feedparser = new FeedParser();
             response.data.pipe(feedparser);
 
-            feedparser.on('error', (error) => {
-                console.error(`FeedParser error: ${error}`);
-            });
+            // Wrap feed parsing in a promise to ensure proper sequencing
+            await new Promise((resolve, reject) => {
+                const messages = [];
+                
+                feedparser.on('error', (error) => {
+                    console.error(`FeedParser error: ${error}`);
+                    reject(error);
+                });
 
-            feedparser.on('readable', async () => {
-                let entry;
-                while ((entry = feedparser.read())) {
-                    const message = `${entry.title}\n${entry.link}`;
-                    try {
-                        await bot.sendMessage(CHANNEL_ID, message);
-                    } catch (sendError) {
-                        console.error(`Error sending message: ${sendError}`);
+                feedparser.on('readable', () => {
+                    let entry;
+                    while ((entry = feedparser.read())) {
+                        const message = `${entry.title}\n${entry.link}`;
+                        messages.push(message);
                     }
-                }
-            });
+                });
 
-            await new Promise((resolve) => {
-                feedparser.on('end', resolve);
+                feedparser.on('end', async () => {
+                    // Send all messages after feed parsing is done
+                    for (const message of messages) {
+                        try {
+                            console.log(`Sending message: ${message}`);
+                            await bot.sendMessage(CHANNEL_ID, message);
+                        } catch (sendError) {
+                            console.error(`Error sending message: ${sendError}`);
+                        }
+                    }
+                    resolve();  // Resolve when done sending messages
+                });
             });
         } catch (error) {
             console.error(`Error fetching or sending feed: ${error}`);
         }
     }
 }
+
 
 // Export the handler function that Netlify will invoke
 exports.handler = async function (event, context) {
