@@ -1,3 +1,4 @@
+/*
 const TelegramBot = require('node-telegram-bot-api'); // Changed to use default export
 const FeedParser = require('feedparser'); // Correctly import FeedParser
 const axios = require('axios');
@@ -43,6 +44,87 @@ exports.handler = async (event, context) => {
 
             await new Promise((resolve) => {
                 feedparser.on('end', resolve); // Wait for the feed to be fully processed
+            });
+
+        } catch (error) {
+            console.error(`Error fetching or sending feed: ${error}`);
+        }
+    }
+
+    return {
+        statusCode: 200,
+        body: JSON.stringify({ message: 'Feeds sent successfully!' }),
+    };
+};
+*/
+const TelegramBot = require('node-telegram-bot-api');
+const FeedParser = require('feedparser');
+const axios = require('axios');
+
+const TOKEN = process.env.TOKEN;
+const CHANNEL_ID = process.env.CHANNEL_ID;
+const bot = new TelegramBot(TOKEN, { polling: true });
+
+let rssUrls = [
+    'http://corcodilos.com/blog/feed',
+    'http://feedity.com/social-hire-com/VlpRUVJU.rss',
+    'http://feeds.feedblitz.com/TalentBlog',
+    'http://theundercoverrecruiter.com/feed/',
+    'http://feeds.feedburner.com/TheStaffingStream',
+    'http://booleanstrings.com/feed/',
+    'http://www.talentculture.com/feed/',
+    'https://resources.workable.com/feed/'
+];
+
+// Command to add a new RSS URL
+bot.onText(/\/addrss/, (msg) => {
+    const chatId = msg.chat.id;
+    bot.sendMessage(chatId, 'Please send me the RSS feed URL you want to add.');
+});
+
+// Listen for messages to get the RSS link
+bot.on('message', (msg) => {
+    const chatId = msg.chat.id;
+    const text = msg.text;
+
+    // Check if the text is a valid RSS URL and not a bot command
+    if (text.startsWith('http') && (text.includes('rss') || text.includes('feed'))) {
+        if (!rssUrls.includes(text)) {
+            rssUrls.push(text); // Add new RSS URL to the list
+            bot.sendMessage(chatId, `RSS feed added: ${text}`);
+        } else {
+            bot.sendMessage(chatId, 'This RSS feed is already in the list.');
+        }
+    }
+});
+
+// Handler for Netlify function to send feeds
+exports.handler = async (event, context) => {
+    for (const rssUrl of rssUrls) {
+        try {
+            const response = await axios.get(rssUrl, { responseType: 'stream' });
+            const feedparser = new FeedParser();
+
+            response.data.pipe(feedparser);
+
+            feedparser.on('error', (error) => {
+                console.error(`FeedParser error: ${error}`);
+            });
+
+            feedparser.on('readable', async () => {
+                let entry;
+                while (entry = feedparser.read()) {
+                    const message = `${entry.title}\n${entry.link}`;
+                    try {
+                        await bot.sendMessage(CHANNEL_ID, message);
+                    } catch (sendError) {
+                        console.error(`Error sending message: ${sendError}`);
+                    }
+                }
+            });
+
+            await new Promise((resolve) => {
+                feedparser.on('end', resolve);
             });
 
         } catch (error) {

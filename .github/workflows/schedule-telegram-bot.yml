@@ -3,8 +3,8 @@ name: Schedule Telegram Bot
 
 on:
   schedule:
-    - cron: '15 2 * * *'  # Runs at 08:00 AM UTC
-    - cron: '45 15 * * *'  # Runs at 12:30 AM UTC
+    - cron: '15 2 * * *'  
+    - cron: '45 15 * * *'  
   workflow_dispatch:  # Allow manual triggering
 
 env:  # Define global environment variables for all jobs
