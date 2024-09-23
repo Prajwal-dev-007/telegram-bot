@@ -76,9 +76,15 @@ let rssUrls = [
     'https://resources.workable.com/feed/'
 ];
 
+// To track chat states (user who sent /addrss command)
+let awaitingRssUrl = {};
+
 // Command to add a new RSS URL
 bot.onText(/\/addrss/, (msg) => {
     const chatId = msg.chat.id;
+    
+    // Set chat state to waiting for an RSS URL
+    awaitingRssUrl[chatId] = true;
     bot.sendMessage(chatId, 'Please send me the RSS feed URL you want to add.');
 });
 
@@ -87,14 +93,20 @@ bot.on('message', (msg) => {
     const chatId = msg.chat.id;
     const text = msg.text;
 
-    // Check if the text is a valid RSS URL and not a bot command
-    if (text.startsWith('http') && (text.includes('rss') || text.includes('feed'))) {
-        if (!rssUrls.includes(text)) {
-            rssUrls.push(text); // Add new RSS URL to the list
-            bot.sendMessage(chatId, `RSS feed added: ${text}`);
+    // If the bot is waiting for an RSS URL and the message isn't a command
+    if (awaitingRssUrl[chatId]) {
+        if (text.startsWith('http') && (text.includes('rss') || text.includes('feed'))) {
+            if (!rssUrls.includes(text)) {
+                rssUrls.push(text); // Add new RSS URL to the list
+                bot.sendMessage(chatId, `RSS feed added: ${text}`);
+            } else {
+                bot.sendMessage(chatId, 'This RSS feed is already in the list.');
+            }
         } else {
-            bot.sendMessage(chatId, 'This RSS feed is already in the list.');
+            bot.sendMessage(chatId, 'That doesn’t look like a valid RSS URL. Please try again.');
         }
+        // After processing, remove the chat state
+        delete awaitingRssUrl[chatId];
     }
 });
 
@@ -113,7 +125,7 @@ exports.handler = async (event, context) => {
 
             feedparser.on('readable', async () => {
                 let entry;
-                while (entry = feedparser.read()) {
+                while ((entry = feedparser.read())) {
                     const message = `${entry.title}\n${entry.link}`;
                     try {
                         await bot.sendMessage(CHANNEL_ID, message);
