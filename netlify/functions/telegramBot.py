@@ -41,8 +41,8 @@ import requests
 from telegram import Bot, Update
 from telegram.ext import CommandHandler, MessageHandler, Filters, Updater
 
-TOKEN = os.getenv('TOKEN')
-CHANNEL_ID = os.getenv('CHANNEL_ID')
+TOKEN = os.getenv('7619941228:AAGHpKq2OaqzDy_fjRkCkhfC6m1e9xt5ffQ')
+CHANNEL_ID = os.getenv('@datamazesolutions')
 rss_urls = [
     'http://corcodilos.com/blog/feed',
     'http://feedity.com/social-hire-com/VlpRUVJU.rss',
