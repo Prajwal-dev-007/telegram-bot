@@ -118,8 +118,8 @@ from telegram import Bot, Update
 from telegram.ext import CommandHandler, ApplicationBuilder, ContextTypes
 import nest_asyncio
 
-TOKEN =  os.getenv('7619941228:AAGHpKq2OaqzDy_fjRkCkhfC6m1e9xt5ffQ') # Replace with your actual bot token
-CHANNEL_ID = os.get('@datamazesolutions') # Replace with your actual channel ID
+TOKEN = '7619941228:AAGHpKq2OaqzDy_fjRkCkhfC6m1e9xt5ffQ' # Replace with your actual bot token
+CHANNEL_ID = '@datamazesolutions' # Replace with your actual channel ID
 RSS_FILE_PATH = 'rss_urls.json'  # File to store the RSS URLs
 
 # Load RSS URLs from the JSON file
