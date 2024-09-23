@@ -154,6 +154,7 @@ async function sendRssFeeds() {
 // Call this function periodically or trigger it from another event
 sendRssFeeds();
 */
+/*
 const TelegramBot = require('node-telegram-bot-api');
 const FeedParser = require('feedparser');
 const axios = require('axios');
@@ -253,4 +254,105 @@ exports.handler = async function (event, context) {
         };
     }
 };
+sendRssFeeds();
+*/
+const TelegramBot = require('node-telegram-bot-api');
+const FeedParser = require('feedparser');
+const axios = require('axios');
+const fs = require('fs');
+
+// Replace these with process.env if you want to use environment variables
+const TOKEN = '7619941228:AAGHpKq2OaqzDy_fjRkCkhfC6m1e9xt5ffQ'; 
+const CHANNEL_ID = '@datamazesolutions';
+const bot = new TelegramBot(TOKEN, { polling: true });
+
+const RSS_FILE_PATH = './rss_urls.json';
+
+// Load RSS URLs from the JSON file
+function loadRssUrls() {
+    try {
+        const data = fs.readFileSync(RSS_FILE_PATH, 'utf8');
+        return JSON.parse(data);
+    } catch (err) {
+        console.error('Error reading RSS file:', err);
+        return [];
+    }
+}
+
+// Save RSS URLs to the JSON file (optional functionality if you want to modify URLs dynamically)
+function saveRssUrls(urls) {
+    try {
+        fs.writeFileSync(RSS_FILE_PATH, JSON.stringify(urls, null, 2));
+        console.log('RSS URLs saved successfully.');
+    } catch (err) {
+        console.error('Error writing to RSS file:', err);
+    }
+}
+
+// Initialize RSS URLs from the file
+let rssUrls = loadRssUrls();
+
+// Function to send RSS entries to the channel
+async function sendRssFeeds() {
+    for (const rssUrl of rssUrls) {
+        console.log(`Fetching RSS feed from: ${rssUrl}`);
+        try {
+            const response = await axios.get(rssUrl, { responseType: 'stream' });
+            const feedparser = new FeedParser();
+            response.data.pipe(feedparser);
+
+            // Wrap feed parsing in a promise to ensure proper sequencing
+            await new Promise((resolve, reject) => {
+                const messages = [];
+                
+                feedparser.on('error', (error) => {
+                    console.error(`FeedParser error: ${error}`);
+                    reject(error);
+                });
+
+                feedparser.on('readable', () => {
+                    let entry;
+                    while ((entry = feedparser.read())) {
+                        const message = `${entry.title}\n${entry.link}`;
+                        messages.push(message);
+                    }
+                });
+
+                feedparser.on('end', async () => {
+                    // Send all messages after feed parsing is done
+                    for (const message of messages) {
+                        try {
+                            console.log(`Sending message: ${message}`);
+                            await bot.sendMessage(CHANNEL_ID, message);
+                        } catch (sendError) {
+                            console.error(`Error sending message: ${sendError}`);
+                        }
+                    }
+                    resolve();  // Resolve when done sending messages
+                });
+            });
+        } catch (error) {
+            console.error(`Error fetching or sending feed: ${error}`);
+        }
+    }
+}
+
+// Export the handler function that Netlify will invoke
+exports.handler = async function (event, context) {
+    try {
+        await sendRssFeeds();
+        return {
+            statusCode: 200,
+            body: JSON.stringify({ message: 'RSS feeds sent successfully' }),
+        };
+    } catch (error) {
+        console.error('Error in handler:', error);
+        return {
+            statusCode: 500,
+            body: JSON.stringify({ error: 'Failed to send RSS feeds' }),
+        };
+    }
+};
+
+// Optional: invoke sendRssFeeds if you are testing locally or want to run it outside of the Netlify handler
 sendRssFeeds();
