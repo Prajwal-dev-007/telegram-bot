@@ -137,11 +137,11 @@ async function fetchAndSendFeeds() {
             response.data.pipe(feedparser);
 
             feedparser.on('readable', async () => {
+                console.log("FeedParser is readable...");
                 let entry;
-
                 while ((entry = feedparser.read())) {
-                    console.log(`Entry found: ${entry.title}`);
                     const message = `${entry.title}\n${entry.link}`;
+                    console.log(`Parsed entry: ${message}`);
                     try {
                         const sentMessage = await bot.sendMessage(CHANNEL_ID, message);
                         console.log(`Message sent: ${sentMessage.message_id}`);
@@ -151,11 +151,16 @@ async function fetchAndSendFeeds() {
                 }
             });
 
+            feedparser.on('error', (err) => {
+                console.error(`FeedParser error: ${err}`);
+            });
+
         } catch (error) {
             console.error(`Error fetching RSS feed: ${rssUrl}, Error: ${error.message}`);
         }
     }
 }
+
 
 
 // Netlify function handler
