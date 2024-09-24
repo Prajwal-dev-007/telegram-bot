@@ -133,6 +133,9 @@ async function fetchAndSendFeeds() {
         console.log(`Fetching feed: ${rssUrl}`);
         try {
             const response = await axios.get(rssUrl, { responseType: 'stream' });
+            console.log(`Response status: ${response.status}`);
+            console.log(`Response headers: ${JSON.stringify(response.headers)}`);
+
             const feedparser = new FeedParser();
             response.data.pipe(feedparser);
 
@@ -160,6 +163,7 @@ async function fetchAndSendFeeds() {
         }
     }
 }
+
 
 
 
