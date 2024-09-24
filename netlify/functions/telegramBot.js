@@ -61,10 +61,11 @@ const TelegramBot = require('node-telegram-bot-api');
 const FeedParser = require('feedparser');
 const axios = require('axios');
 const fs = require('fs');
- 
 
+// Token and Channel ID (Make sure these are set in your Netlify environment variables)
 const TOKEN = process.env.TOKEN;
 const CHANNEL_ID = process.env.CHANNEL_ID;
+
 const bot = new TelegramBot(TOKEN, { polling: true });
 
 // Path to store RSS URLs dynamically added via /addrss
@@ -91,16 +92,39 @@ function saveRssUrls(urls) {
     }
 }
 
-// Default static list of RSS URLs
-const defaultRssUrls = [
- 'http://feeds.feedblitz.com/TalentBlog'
-];
+// Validate RSS link
+async function validateRssLink(rssLink) {
+    try {
+        const response = await axios.get(rssLink);
+        return response.status === 200;
+    } catch (error) {
+        console.error('Invalid RSS link:', error);
+        return false;
+    }
+}
+
+// Function to handle /addrss command
+bot.onText(/\/addrss (.+)/, async (msg, match) => {
+    const chatId = msg.chat.id;
+    const rssLink = match[1].trim(); // Extract the RSS URL from the command
+    let rssUrls = loadRssUrls(); // Load the existing URLs
+
+    if (await validateRssLink(rssLink)) {
+        if (!rssUrls.includes(rssLink)) {
+            rssUrls.push(rssLink); // Add the new RSS link
+            saveRssUrls(rssUrls); // Save updated list to the JSON file
+            bot.sendMessage(chatId, `New RSS link added: ${rssLink}`);
+        } else {
+            bot.sendMessage(chatId, `This RSS link is already in the list.`);
+        }
+    } else {
+        bot.sendMessage(chatId, `Invalid RSS link: ${rssLink}`);
+    }
+});
 
 // Function to fetch and send RSS feeds
 async function fetchAndSendFeeds() {
-    const rssUrls = [...defaultRssUrls, ...loadRssUrls()]; // Combine default and dynamic URLs
-
-    //const rssUrls = loadRssUrls(); // Load only dynamic URLs from the JSON file
+    const rssUrls = loadRssUrls(); // Load only dynamic URLs from the JSON file
 
     // Check if there are any URLs to process
     if (rssUrls.length === 0) {
@@ -109,7 +133,6 @@ async function fetchAndSendFeeds() {
     }
 
     for (const rssUrl of rssUrls) {
-        console.log(`Fetching RSS feed from: ${rssUrl}`);
         try {
             const response = await axios.get(rssUrl, { responseType: 'stream' });
             const feedparser = new FeedParser();
@@ -142,28 +165,13 @@ async function fetchAndSendFeeds() {
     }
 }
 
-// Function to handle /addrss command
-bot.onText(/\/addrss (.+)/, (msg, match) => {
-    const chatId = msg.chat.id;
-    const rssLink = match[1].trim(); // Extract the RSS URL from the command
-    let rssUrls = loadRssUrls(); // Load the existing URLs
-
-    if (!rssUrls.includes(rssLink)) {
-        rssUrls.push(rssLink); // Add the new RSS link
-        saveRssUrls(rssUrls); // Save updated list to the JSON file
-        bot.sendMessage(chatId, `New RSS link added: ${rssLink}`);
-    } else {
-        bot.sendMessage(chatId, `This RSS link is already in the list.`);
-    }
-});
-
 // Export the handler for Netlify
 exports.handler = async (event, context) => {
-    await fetchAndSendFeeds(); // Fetch and send the RSS feeds
+    // Ensure RSS feed fetching is handled when invoked
+    await fetchAndSendFeeds();
 
     return {
         statusCode: 200,
         body: JSON.stringify({ message: 'Feeds sent successfully!' }),
     };
 };
-
