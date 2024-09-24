@@ -57,121 +57,99 @@ exports.handler = async (event, context) => {
     };
 };
 */
-const TelegramBot = require('node-telegram-bot-api'); 
-const FeedParser = require('feedparser');
-const axios = require('axios');
-const fs = require('fs');
+const { MongoClient } = require('mongodb');
 
-// Token and Channel ID (Make sure these are set in your Netlify environment variables)
-const TOKEN = process.env.TOKEN;
+const uri = process.env.MONGODB_URI; // MongoDB connection string stored in Netlify's environment variables
+
+// Connect to MongoDB
+async function connectToDB() {
+  const client = new MongoClient(uri);
+  await client.connect();
+  const database = client.db('rssDB');  // Replace 'rssDB' with your actual database name
+  const collection = database.collection('rssLinks');  // Replace 'rssLinks' with your collection name
+  return { client, collection };
+}
+
+// Function to add a new RSS link to MongoDB
+async function addRssLink(rssLink) {
+  const { client, collection } = await connectToDB();
+  const existingLink = await collection.findOne({ link: rssLink });
+  
+  if (!existingLink) {
+    await collection.insertOne({ link: rssLink, addedAt: new Date() });
+    console.log(`RSS link added: ${rssLink}`);
+  } else {
+    console.log(`RSS link already exists: ${rssLink}`);
+  }
+  
+  client.close();
+}
+
+// Function to get all RSS links from MongoDB
+async function getRssLinks() {
+  const { client, collection } = await connectToDB();
+  const links = await collection.find({}).toArray();
+  client.close();
+  return links.map(link => link.link);
+}
+
+// Telegram Bot Integration Example
+const TelegramBot = require('node-telegram-bot-api');
+const bot = new TelegramBot(process.env.TOKEN, { polling: true });
 const CHANNEL_ID = process.env.CHANNEL_ID;
 
-const bot = new TelegramBot(TOKEN, { polling: true });
-
-// Path to store RSS URLs dynamically added via /addrss
-const RSS_FILE_PATH = './rss_urls.json';
-
-// Load RSS URLs from the JSON file
-function loadRssUrls() {
-    try {
-        const data = fs.readFileSync(RSS_FILE_PATH, 'utf8');
-        return JSON.parse(data);
-    } catch (err) {
-        console.error('Error reading RSS file:', err);
-        return [];
-    }
-}
-
-// Save RSS URLs to the JSON file
-function saveRssUrls(urls) {
-    try {
-        fs.writeFileSync(RSS_FILE_PATH, JSON.stringify(urls, null, 2));
-        console.log('RSS URLs saved successfully.');
-    } catch (err) {
-        console.error('Error writing to RSS file:', err);
-    }
-}
-
-// Validate RSS link
-async function validateRssLink(rssLink) {
-    try {
-        const response = await axios.get(rssLink);
-        return response.status === 200;
-    } catch (error) {
-        console.error('Invalid RSS link:', error);
-        return false;
-    }
-}
-
-// Function to handle /addrss command
+// Command to add an RSS link via Telegram
 bot.onText(/\/addrss (.+)/, async (msg, match) => {
-    const chatId = msg.chat.id;
-    const rssLink = match[1].trim(); // Extract the RSS URL from the command
-    let rssUrls = loadRssUrls(); // Load the existing URLs
+  const chatId = msg.chat.id;
+  const rssLink = match[1].trim();
 
-    if (await validateRssLink(rssLink)) {
-        if (!rssUrls.includes(rssLink)) {
-            rssUrls.push(rssLink); // Add the new RSS link
-            saveRssUrls(rssUrls); // Save updated list to the JSON file
-            bot.sendMessage(chatId, `New RSS link added: ${rssLink}`);
-        } else {
-            bot.sendMessage(chatId, `This RSS link is already in the list.`);
-        }
-    } else {
-        bot.sendMessage(chatId, `Invalid RSS link: ${rssLink}`);
-    }
+  try {
+    await addRssLink(rssLink);
+    bot.sendMessage(chatId, `RSS link added: ${rssLink}`);
+  } catch (error) {
+    bot.sendMessage(chatId, `Error adding RSS link: ${error.message}`);
+  }
 });
 
-// Function to fetch and send RSS feeds
+// Function to fetch and send RSS feeds to the Telegram channel
 async function fetchAndSendFeeds() {
-    const rssUrls = loadRssUrls(); // Load only dynamic URLs from the JSON file
+  const rssLinks = await getRssLinks(); // Fetch RSS links from MongoDB
 
-    // Check if there are any URLs to process
-    if (rssUrls.length === 0) {
-        console.log('No RSS URLs found.');
-        return;
-    }
+  if (rssLinks.length === 0) {
+    console.log('No RSS links found.');
+    return;
+  }
 
-    for (const rssUrl of rssUrls) {
-        try {
-            const response = await axios.get(rssUrl, { responseType: 'stream' });
-            const feedparser = new FeedParser();
+  for (const rssUrl of rssLinks) {
+    try {
+      const response = await axios.get(rssUrl);
+      const feedparser = new FeedParser();
+      response.data.pipe(feedparser);
 
-            response.data.pipe(feedparser);
-
-            feedparser.on('error', (error) => {
-                console.error(`FeedParser error: ${error}`);
-            });
-
-            feedparser.on('readable', async () => {
-                let entry;
-                while ((entry = feedparser.read())) {
-                    const message = `${entry.title}\n${entry.link}`;
-                    try {
-                        await bot.sendMessage(CHANNEL_ID, message);
-                    } catch (sendError) {
-                        console.error(`Error sending message: ${sendError}`);
-                    }
-                }
-            });
-
-            await new Promise((resolve) => {
-                feedparser.on('end', resolve);
-            });
-
-        } catch (error) {
-            console.error(`Error fetching or sending feed: ${error}`);
+      feedparser.on('readable', async () => {
+        let entry;
+        while ((entry = feedparser.read())) {
+          const message = `${entry.title}\n${entry.link}`;
+          try {
+            await bot.sendMessage(CHANNEL_ID, message);
+          } catch (sendError) {
+            console.error(`Error sending message: ${sendError}`);
+          }
         }
+      });
+
+    } catch (error) {
+      console.error(`Error fetching RSS feed: ${rssUrl}, Error: ${error.message}`);
     }
+  }
 }
 
-// Export the handler for Netlify
+// Netlify function handler
 exports.handler = async (event, context) => {
-    // Ensure RSS feed fetching is handled when invoked
-    await fetchAndSendFeeds();
+  await fetchAndSendFeeds(); // Fetch and send the RSS feeds
 
-    return {
-        statusCode: 200,
-        body: JSON.stringify({ message: 'Feeds sent successfully!' }),
-    };
+  return {
+    statusCode: 200,
+    body: JSON.stringify({ message: 'Feeds sent successfully!' }),
+  };
 };
