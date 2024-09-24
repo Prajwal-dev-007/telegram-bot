@@ -116,6 +116,7 @@ async function fetchAndSendFeeds() {
     }
 
     for (const rssUrl of rssUrls) {
+        console.log(`Fetching RSS feed from: ${rssUrl}`);
         try {
             const response = await axios.get(rssUrl, { responseType: 'stream' });
             const feedparser = new FeedParser();
