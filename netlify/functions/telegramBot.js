@@ -93,21 +93,14 @@ function saveRssUrls(urls) {
 
 // Default static list of RSS URLs
 const defaultRssUrls = [
-    'http://corcodilos.com/blog/feed',
-    'http://feedity.com/social-hire-com/VlpRUVJU.rss',
-    'http://feeds.feedblitz.com/TalentBlog',
-    'http://theundercoverrecruiter.com/feed/',
-    'http://feeds.feedburner.com/TheStaffingStream',
-    'http://booleanstrings.com/feed/',
-    'http://www.talentculture.com/feed/',
-    'https://resources.workable.com/feed/'
+ "http://feeds.feedblitz.com/TalentBlog"
 ];
 
 // Function to fetch and send RSS feeds
 async function fetchAndSendFeeds() {
-    //const rssUrls = [...defaultRssUrls, ...loadRssUrls()]; // Combine default and dynamic URLs
+    const rssUrls = [...defaultRssUrls, ...loadRssUrls()]; // Combine default and dynamic URLs
 
-    const rssUrls = loadRssUrls(); // Load only dynamic URLs from the JSON file
+    //const rssUrls = loadRssUrls(); // Load only dynamic URLs from the JSON file
 
     // Check if there are any URLs to process
     if (rssUrls.length === 0) {
