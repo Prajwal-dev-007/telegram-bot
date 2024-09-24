@@ -61,6 +61,7 @@ const { MongoClient } = require('mongodb');
 
 const uri = process.env.MONGODB_URI; // MongoDB connection string stored in Netlify's environment variables
 
+const axios = require('axios');
 // Connect to MongoDB
 async function connectToDB() {
   const client = new MongoClient(uri);
@@ -68,7 +69,10 @@ async function connectToDB() {
   const database = client.db('rssDB');  // Replace 'rssDB' with your actual database name
   const collection = database.collection('rssLinks');  // Replace 'rssLinks' with your collection name
   return { client, collection };
+  
+
 }
+
 
 // Function to add a new RSS link to MongoDB
 async function addRssLink(rssLink) {
