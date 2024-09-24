@@ -158,11 +158,16 @@ async function fetchAndSendFeeds() {
                 console.error(`FeedParser error: ${err}`);
             });
 
+            feedparser.on('end', () => {
+                console.log(`Finished parsing feed: ${rssUrl}`);
+            });
+
         } catch (error) {
             console.error(`Error fetching RSS feed: ${rssUrl}, Error: ${error.message}`);
         }
     }
 }
+
 
 
 
