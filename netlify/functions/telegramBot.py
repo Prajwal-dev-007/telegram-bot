@@ -34,6 +34,7 @@ def handler(event, context):
     }
 print("script executed")
 
+
 """""
 import os
 import json
@@ -161,7 +162,7 @@ async def addrss(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         await update.message.reply_text("Please provide a valid RSS link after the command.")
 
 async def send_feeds():
-   """"Send messages for the existing RSS feeds.""""
+    """"Send messages for the existing RSS feeds.""""
     bot = Bot(token=TOKEN)
 
     for rss_url in rss_urls:

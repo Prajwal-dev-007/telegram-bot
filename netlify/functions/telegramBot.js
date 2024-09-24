@@ -1,4 +1,4 @@
-
+/*require('dotenv').config();
 const TelegramBot = require('node-telegram-bot-api'); // Changed to use default export
 const FeedParser = require('feedparser'); // Correctly import FeedParser
 const axios = require('axios');
@@ -56,19 +56,20 @@ exports.handler = async (event, context) => {
         body: JSON.stringify({ message: 'Feeds sent successfully!' }),
     };
 };
-
-
-/*
+*/
+require('dotenv').config();
 const TelegramBot = require('node-telegram-bot-api'); 
-const FeedParser = require('feedparser'); 
+const FeedParser = require('feedparser');
 const axios = require('axios');
 const fs = require('fs');
+require('dotenv').config(); // Load environment variables
 
-const TOKEN = process.env.TOKEN; 
-const CHANNEL_ID = process.env.CHANNEL_ID; 
-const bot = new TelegramBot(TOKEN, { polling: true }); 
+const TOKEN = '7619941228:AAGHpKq2OaqzDy_fjRkCkhfC6m1e9xt5ffQ';
+const CHANNEL_ID = '@datamazesolutions';
+const bot = new TelegramBot(TOKEN, { polling: true });
 
-const RSS_FILE_PATH = './rss_urls.json'; // Path to your JSON file
+// Path to store RSS URLs dynamically added via /addrss
+const RSS_FILE_PATH = './rss_urls.json';
 
 // Load RSS URLs from the JSON file
 function loadRssUrls() {
@@ -81,15 +82,38 @@ function loadRssUrls() {
     }
 }
 
-exports.handler = async (event, context) => {
-    const rssUrls = loadRssUrls(); // Load URLs from the JSON file
+// Save RSS URLs to the JSON file
+function saveRssUrls(urls) {
+    try {
+        fs.writeFileSync(RSS_FILE_PATH, JSON.stringify(urls, null, 2));
+        console.log('RSS URLs saved successfully.');
+    } catch (err) {
+        console.error('Error writing to RSS file:', err);
+    }
+}
+
+// Default static list of RSS URLs
+const defaultRssUrls = [
+    'http://corcodilos.com/blog/feed',
+    'http://feedity.com/social-hire-com/VlpRUVJU.rss',
+    'http://feeds.feedblitz.com/TalentBlog',
+    'http://theundercoverrecruiter.com/feed/',
+    'http://feeds.feedburner.com/TheStaffingStream',
+    'http://booleanstrings.com/feed/',
+    'http://www.talentculture.com/feed/',
+    'https://resources.workable.com/feed/'
+];
+
+// Function to fetch and send RSS feeds
+async function fetchAndSendFeeds() {
+    const rssUrls = [...defaultRssUrls, ...loadRssUrls()]; // Combine default and dynamic URLs
 
     for (const rssUrl of rssUrls) {
         try {
-            const response = await axios.get(rssUrl, { responseType: 'stream' }); 
+            const response = await axios.get(rssUrl, { responseType: 'stream' });
             const feedparser = new FeedParser();
 
-            response.data.pipe(feedparser); 
+            response.data.pipe(feedparser);
 
             feedparser.on('error', (error) => {
                 console.error(`FeedParser error: ${error}`);
@@ -97,7 +121,7 @@ exports.handler = async (event, context) => {
 
             feedparser.on('readable', async () => {
                 let entry;
-                while (entry = feedparser.read()) {
+                while ((entry = feedparser.read())) {
                     const message = `${entry.title}\n${entry.link}`;
                     try {
                         await bot.sendMessage(CHANNEL_ID, message);
@@ -115,10 +139,30 @@ exports.handler = async (event, context) => {
             console.error(`Error fetching or sending feed: ${error}`);
         }
     }
+}
+
+// Function to handle /addrss command
+bot.onText(/\/addrss (.+)/, (msg, match) => {
+    const chatId = msg.chat.id;
+    const rssLink = match[1].trim(); // Extract the RSS URL from the command
+    let rssUrls = loadRssUrls(); // Load the existing URLs
+
+    if (!rssUrls.includes(rssLink)) {
+        rssUrls.push(rssLink); // Add the new RSS link
+        saveRssUrls(rssUrls); // Save updated list to the JSON file
+        bot.sendMessage(chatId, `New RSS link added: ${rssLink}`);
+    } else {
+        bot.sendMessage(chatId, `This RSS link is already in the list.`);
+    }
+});
+
+// Export the handler for Netlify
+exports.handler = async (event, context) => {
+    await fetchAndSendFeeds(); // Fetch and send the RSS feeds
 
     return {
         statusCode: 200,
         body: JSON.stringify({ message: 'Feeds sent successfully!' }),
     };
 };
-*/
+
