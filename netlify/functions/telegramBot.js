@@ -92,12 +92,24 @@ async function addRssLink(rssLink) {
 }
 
 // Function to get all RSS links from MongoDB
-async function getRssLinks() {
+/*async function getRssLinks() {
   const { client, collection } = await connectToDB();
   const links = await collection.find({}).toArray();
   client.close();
   return links.map(link => link.link);
-}
+}*/
+async function getRssLinks() {
+    const { client, collection } = await connectToDB();
+    
+    // Fetch all documents in the collection
+    const linksDocuments = await collection.find({}).toArray();
+    
+    client.close();
+    
+    // Extract the 'link' field from each document and return as an array of links
+    return linksDocuments.map(doc => doc.link);
+  }
+  
 
 // Telegram Bot Integration Example
 const TelegramBot = require('node-telegram-bot-api');
