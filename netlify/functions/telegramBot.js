@@ -105,7 +105,15 @@ const defaultRssUrls = [
 
 // Function to fetch and send RSS feeds
 async function fetchAndSendFeeds() {
-    const rssUrls = [...defaultRssUrls, ...loadRssUrls()]; // Combine default and dynamic URLs
+    //const rssUrls = [...defaultRssUrls, ...loadRssUrls()]; // Combine default and dynamic URLs
+
+    const rssUrls = loadRssUrls(); // Load only dynamic URLs from the JSON file
+
+    // Check if there are any URLs to process
+    if (rssUrls.length === 0) {
+        console.log('No RSS URLs found.');
+        return;
+    }
 
     for (const rssUrl of rssUrls) {
         try {
