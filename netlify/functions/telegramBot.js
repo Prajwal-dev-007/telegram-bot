@@ -127,8 +127,9 @@ async function fetchAndSendFeeds() {
     console.log('No RSS links found.');
     return;
   }
-
+  console.log("Starting to fetch RSS feeds...");
   for (const rssUrl of rssLinks) {
+    console.log(`Fetching feed: ${rssUrl}`);
     try {
       const response = await axios.get(rssUrl);
       const feedparser = new FeedParser();
@@ -151,7 +152,7 @@ async function fetchAndSendFeeds() {
       feedparser.on('error', (error) => {
         console.error(`Error parsing feed: ${error}`);
       });
-
+      console.log(`Successfully fetched feed: ${rssUrl}`);
     } catch (error) {
       console.error(`Error fetching RSS feed: ${rssUrl}, Error: ${error.message}`);
     }
