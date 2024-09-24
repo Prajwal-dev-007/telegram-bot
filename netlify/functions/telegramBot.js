@@ -62,6 +62,8 @@ const { MongoClient } = require('mongodb');
 const uri = process.env.MONGODB_URI; // MongoDB connection string stored in Netlify's environment variables
 
 const axios = require('axios');
+const FeedParser = require('feedparser');
+
 // Connect to MongoDB
 async function connectToDB() {
   const client = new MongoClient(uri);
