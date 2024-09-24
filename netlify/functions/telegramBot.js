@@ -118,7 +118,7 @@ bot.onText(/\/addrss (.+)/, async (msg, match) => {
 });
 
 // Function to fetch and send RSS feeds to the Telegram channel
-const axios = require('axios'); // Make sure axios is imported
+
 
 async function fetchAndSendFeeds() {
   const rssLinks = await getRssLinks(); // Fetch RSS links from MongoDB
