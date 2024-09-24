@@ -118,45 +118,43 @@ bot.onText(/\/addrss (.+)/, async (msg, match) => {
 });
 
 // Function to fetch and send RSS feeds to the Telegram channel
-
-
+// Function to fetch and send RSS feeds to the Telegram channel
 async function fetchAndSendFeeds() {
-  const rssLinks = await getRssLinks(); // Fetch RSS links from MongoDB
+    const rssLinks = await getRssLinks(); // Fetch RSS links from MongoDB
 
-  if (rssLinks.length === 0) {
-    console.log('No RSS links found.');
-    return;
-  }
-  console.log("Starting to fetch RSS feeds...");
-  for (const rssUrl of rssLinks) {
-    console.log(`Fetching feed: ${rssUrl}`);
-    try {
-      const response = await axios.get(rssUrl);
-      const feedparser = new FeedParser();
-
-      // Create a stream from the response data
-      feedparser.end(response.data);
-
-      feedparser.on('readable', async () => {
-        let entry;
-        while ((entry = feedparser.read())) {
-          const message = `${entry.title}\n${entry.link}`;
-          try {
-            await bot.sendMessage(CHANNEL_ID, message);
-          } catch (sendError) {
-            console.error(`Error sending message: ${sendError}`);
-          }
-        }
-      });
-
-      feedparser.on('error', (error) => {
-        console.error(`Error parsing feed: ${error}`);
-      });
-      console.log(`Successfully fetched feed: ${rssUrl}`);
-    } catch (error) {
-      console.error(`Error fetching RSS feed: ${rssUrl}, Error: ${error.message}`);
+    if (rssLinks.length === 0) {
+        console.log('No RSS links found.');
+        return;
     }
-  }
+
+    console.log("Starting to fetch RSS feeds...");
+
+    for (const rssUrl of rssLinks) {
+        console.log(`Fetching feed: ${rssUrl}`);
+        try {
+            const response = await axios.get(rssUrl);
+            const feedparser = new FeedParser();
+            response.data.pipe(feedparser);
+
+            feedparser.on('readable', async () => {
+                let entry;
+
+                while ((entry = feedparser.read())) {
+                    console.log(`Entry found: ${entry.title}`);
+                    const message = `${entry.title}\n${entry.link}`;
+                    try {
+                        const sentMessage = await bot.sendMessage(CHANNEL_ID, message);
+                        console.log(`Message sent: ${sentMessage.message_id}`);
+                    } catch (sendError) {
+                        console.error(`Error sending message: ${sendError}`);
+                    }
+                }
+            });
+
+        } catch (error) {
+            console.error(`Error fetching RSS feed: ${rssUrl}, Error: ${error.message}`);
+        }
+    }
 }
 
 
