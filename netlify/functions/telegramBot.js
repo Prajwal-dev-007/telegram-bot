@@ -118,6 +118,8 @@ bot.onText(/\/addrss (.+)/, async (msg, match) => {
 });
 
 // Function to fetch and send RSS feeds to the Telegram channel
+const axios = require('axios'); // Make sure axios is imported
+
 async function fetchAndSendFeeds() {
   const rssLinks = await getRssLinks(); // Fetch RSS links from MongoDB
 
@@ -130,7 +132,9 @@ async function fetchAndSendFeeds() {
     try {
       const response = await axios.get(rssUrl);
       const feedparser = new FeedParser();
-      response.data.pipe(feedparser);
+
+      // Create a stream from the response data
+      feedparser.end(response.data);
 
       feedparser.on('readable', async () => {
         let entry;
@@ -144,11 +148,16 @@ async function fetchAndSendFeeds() {
         }
       });
 
+      feedparser.on('error', (error) => {
+        console.error(`Error parsing feed: ${error}`);
+      });
+
     } catch (error) {
       console.error(`Error fetching RSS feed: ${rssUrl}, Error: ${error.message}`);
     }
   }
 }
+
 
 // Netlify function handler
 exports.handler = async (event, context) => {
