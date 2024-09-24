@@ -93,7 +93,7 @@ function saveRssUrls(urls) {
 
 // Default static list of RSS URLs
 const defaultRssUrls = [
- "http://feeds.feedblitz.com/TalentBlog"
+ 'http://feeds.feedblitz.com/TalentBlog'
 ];
 
 // Function to fetch and send RSS feeds
