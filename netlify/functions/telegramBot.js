@@ -93,13 +93,7 @@ async function addRssLink(rssLink) {
 
 
 
-// Function to get all RSS links from MongoDB
-/*async function getRssLinks() {
-  const { client, collection } = await connectToDB();
-  const links = await collection.find({}).toArray();
-  client.close();
-  return links.map(link => link.link);
-}*/
+
 async function getRssLinks() {
     const { client, collection } = await connectToDB();
     
@@ -132,9 +126,7 @@ bot.onText(/\/addrss (.+)/, async (msg, match) => {
   }
 });
 
-// Function to fetch and send RSS feeds to the Telegram channel
-// Function to fetch and send RSS feeds to the Telegram channel
-/*
+
 async function fetchAndSendFeeds() {
     const rssLinks = await getRssLinks(); // Fetch all RSS links from MongoDB
 
@@ -143,66 +135,13 @@ async function fetchAndSendFeeds() {
         return;
     }
 
-    console.log("Starting to fetch RSS feeds...");
+   
 
     // Process all links concurrently
     const fetchPromises = rssLinks.map(async (rssUrl) => {
         console.log(`Fetching feed: ${rssUrl}`);
         try {
-            const response = await axios.get(rssUrl, { responseType: 'stream', timeout: 10000});
-            console.log(`Response status: ${response.status}`);
-
-            const feedparser = new FeedParser();
-            response.data.pipe(feedparser);
-
-            feedparser.on('readable', async () => {
-                let entry;
-                while ((entry = feedparser.read())) {
-                    const message = `${entry.title}\n${entry.link}`;
-                    console.log(`Parsed entry: ${message}`);
-                    try {
-                        await bot.sendMessage(CHANNEL_ID, message);
-                    } catch (sendError) {
-                        console.error(`Error sending message: ${sendError}`);
-                    }
-                }
-            });
-
-            feedparser.on('error', (err) => {
-                console.error(`FeedParser error: ${err}`);
-            });
-
-            feedparser.on('end', () => {
-                console.log(`Finished parsing feed: ${rssUrl}`);
-            });
-
-        } catch (error) {
-            console.error(`Error fetching RSS feed: ${rssUrl}, Error: ${error.message}`);
-        }
-    });
-
-    // Await all the fetches
-    await Promise.all(fetchPromises);
-
-    console.log("Finished fetching all RSS feeds.");
-}
-
-*/
-async function fetchAndSendFeeds() {
-    const rssLinks = await getRssLinks(); // Fetch all RSS links from MongoDB
-
-    if (rssLinks.length === 0) {
-        console.log('No RSS links found.');
-        return;
-    }
-
-    console.log("Starting to fetch RSS feeds...");
-
-    // Process all links concurrently
-    const fetchPromises = rssLinks.map(async (rssUrl) => {
-        console.log(`Fetching feed: ${rssUrl}`);
-        try {
-            const response = await axios.get(rssUrl, { responseType: 'stream' });
+            const response = await axios.get(rssUrl, { responseType: 'stream', timeout: 5000 });
             console.log(`Response status: ${response.status}`);
 
             const feedparser = new FeedParser();
