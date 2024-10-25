@@ -205,40 +205,42 @@ bot.onText(/\/addrss (.+)/, async (msg, match) => {
 
 // Function to send feed to LinkedIn
 async function sendToLinkedIn(feedContent) {
-  const url = "https://api.linkedin.com/v2/ugcPosts";
-  const headers = {
-    "Authorization": `Bearer ${LINKEDIN_ACCESS_TOKEN}`,
-    "X-Restli-Protocol-Version": "2.0.0",
-    "Content-Type": "application/json"
-  };
-
-  const data = {
-    "author": `urn:li:organization:${LINKEDIN_ORG_ID}`,
-    "lifecycleState": "PUBLISHED",
-    "specificContent": {
-      "com.linkedin.ugc.ShareContent": {
-        "shareCommentary": {
-          "text": feedContent
-        },
-        "shareMediaCategory": "NONE"
+    const url = "https://api.linkedin.com/v2/ugcPosts";
+    const headers = {
+      "Authorization": `Bearer ${LINKEDIN_ACCESS_TOKEN}`,
+      "X-Restli-Protocol-Version": "2.0.0",
+      "Content-Type": "application/json"
+    };
+  
+    const data = {
+      "author": `urn:li:organization:${LINKEDIN_ORG_ID}`,
+      "lifecycleState": "PUBLISHED",
+      "specificContent": {
+        "com.linkedin.ugc.ShareContent": {
+          "shareCommentary": {
+            "text": feedContent
+          },
+          "shareMediaCategory": "NONE"
+        }
+      },
+      "visibility": {
+        "com.linkedin.ugc.MemberNetworkVisibility": "PUBLIC"
       }
-    },
-    "visibility": {
-      "com.linkedin.ugc.MemberNetworkVisibility": "PUBLIC"
+    };
+  
+    try {
+      console.log("Attempting to post to LinkedIn...");
+      const response = await axios.post(url, data, { headers });
+      if (response.status === 201) {
+        console.log("Successfully posted to LinkedIn.");
+      } else {
+        console.error(`Failed to post to LinkedIn: ${response.status}, ${response.data}`);
+      }
+    } catch (error) {
+      console.error(`Error posting to LinkedIn: ${error.message}`);
     }
-  };
-
-  try {
-    const response = await axios.post(url, data, { headers });
-    if (response.status === 201) {
-      console.log("Successfully posted to LinkedIn.");
-    } else {
-      console.error(`Failed to post to LinkedIn: ${response.status}, ${response.data}`);
-    }
-  } catch (error) {
-    console.error(`Error posting to LinkedIn: ${error.message}`);
   }
-}
+  
 
 // Function to fetch and send feeds to Telegram and LinkedIn
 async function fetchAndSendFeeds() {

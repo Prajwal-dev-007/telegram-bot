@@ -10,6 +10,8 @@ on:
 env:  # Define global environment variables for all jobs
   TOKEN: ${{ secrets.TOKEN }}
   CHANNEL_ID: ${{ secrets.CHANNEL_ID }}
+  LINKEDIN_ACCESS_TOKEN: ${{ secrets.LINKEDIN_ACCESS_TOKEN}}
+  LINKEDIN_ORG_ID: ${{ secrets.LINKEDIN_ORG_ID}}
 
 jobs:
   send_feed:
